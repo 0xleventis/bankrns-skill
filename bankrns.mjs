@@ -463,6 +463,7 @@ main().catch((e) => {
   const buildOnly = process.argv.includes("--build-only");
   if (buildOnly) emit({ error: e.shortMessage || e.message });
   else console.error(`❌ ${e.shortMessage || e.message}`);
+  if (process.env.DEBUG) console.error(e);
   // exitCode (not process.exit) lets open HTTP sockets close cleanly — exit() crashes Node on Windows.
   process.exitCode = 1;
 });
