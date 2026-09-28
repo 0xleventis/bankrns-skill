@@ -3,6 +3,8 @@ name: bankrns
 description: Register, renew and look up .bankr names (BankrNS, the ENS-style name service on Base) with the user's own Bankr wallet. Use when the user asks to buy, register, claim, get, mint, gift or renew a ".bankr" name or domain (e.g. "@bankrbot buy me alice.bankr", "register satoshi.bankr for 2 years", "get bob.bankr and point it to 0x…"), asks whether a .bankr name is available or what it costs, asks who owns a .bankr name or what it resolves to, or asks what an address's or X handle's .bankr name is.
 ---
 
+<p align="center"><a href="https://bankrns.store"><img src="https://bankrns.store/brand/bankrns-lockup-dark.png" alt="BankrNS" width="480"></a></p>
+
 # BankrNS (.bankr names)
 
 Buys and manages `.bankr` names on Base using the **installing user's own Bankr wallet**. Names are ERC-721
