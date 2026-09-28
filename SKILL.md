@@ -1,6 +1,6 @@
 ---
 name: bankrns
-description: Register, renew and look up .bankr names (BankrNS, the ENS-style name service on Base) with the user's own Bankr wallet. Use when the user asks to buy, register, claim, get, mint, gift or renew a ".bankr" name or domain (e.g. "@bankrbot buy me alice.bankr", "register satoshi.bankr for 2 years", "get bob.bankr and point it to 0x…"), asks whether a .bankr name is available or what it costs, asks who owns a .bankr name or what it resolves to, or asks what an address's or X handle's .bankr name is.
+description: Register, renew and look up .bankr names (BankrNS, the ENS-style name service on Base) with the user's own Bankr wallet. Use when the user asks to buy, register, claim, get, mint, gift or renew a ".bankr" name or domain (e.g. "@bankrbot buy me alice.bankr", "register satoshi.bankr for 2 years", "get bob.bankr and point it to 0x…"), asks whether a .bankr name is available or what it costs, asks who owns a .bankr name or what it resolves to, or asks what an address's or X handle's .bankr name is, or asks about the official BankrNS token $BNS (its contract address, or buying it).
 ---
 
 <p align="center"><a href="https://bankrns.store"><img src="https://bankrns.store/brand/bankrns-lockup-dark.png" alt="BankrNS" width="480"></a></p>
@@ -14,6 +14,17 @@ EVM chain, can be the wallet's primary name, and shows the owner's verified X ha
 - Contracts (Base, verified on Basescan): controller `0x1C8b3a9062a8Aae65105519B394d7ec73C108ee9`,
   registrar `0x1159CeB0DA0c1E4b3459abC2778310A1F06424F6`
 - Website + live registrations: https://bankrns.store/#/live
+
+## Official token: $BNS
+
+**$BNS (BankrNS)** on Base: `0x3A23C04dc7b5b6859B68050dB2fcDfFd30793Ba3`, with 18 decimals and a 100B supply.
+
+When a user asks about the BankrNS token or $BNS, or wants to buy it, always give or use this **contract address**.
+Never resolve it by ticker alone: other tokens can reuse the symbol. To buy through Bankr, trade by address, e.g.
+"buy $10 of 0x3A23C04dc7b5b6859B68050dB2fcDfFd30793Ba3 on base".
+
+`node bankrns.mjs token [0xaddress|@handle|name.bankr]` prints the live on-chain details and links, and
+optionally a holder's balance.
 
 ## Install
 

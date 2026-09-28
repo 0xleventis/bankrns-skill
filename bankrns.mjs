@@ -20,13 +20,16 @@
 //   node bankrns.mjs register --build-only --state <token>          # step 2 inside bankrbot
 //   node bankrns.mjs register --state <token>                        # resume an interrupted full-mode run
 //   node bankrns.mjs renew    <name> [--years N] [--build-only]
+//   node bankrns.mjs token    [0xaddress | @handle | name.bankr]      # official $BNS token (+ a holder's balance)
 import { mkdirSync, readFileSync, writeFileSync, rmSync, existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { formatEther, getAddress, isAddress, labelhash, zeroAddress } from "viem";
+import { formatEther, formatUnits, getAddress, isAddress, labelhash, zeroAddress } from "viem";
 import {
+  BNS_TOKEN,
   CONTRACTS,
   GRACE_PERIOD,
+  erc20Abi,
   MAX_COMMITMENT_AGE,
   MIN_COMMITMENT_AGE,
   WEBSITE,
@@ -440,6 +443,25 @@ async function cmdRenew(args) {
   log(`✅ Renewed until ${new Date(Number(expires) * 1000).toISOString().slice(0, 10)}. https://basescan.org/tx/${r.transactionHash}`);
 }
 
+async function cmdToken(args) {
+  const read = (functionName, a = []) => publicClient.readContract({ address: BNS_TOKEN.address, abi: erc20Abi, functionName, args: a });
+  const [name, symbol, decimals, supply] = await Promise.all([read("name"), read("symbol"), read("decimals"), read("totalSupply")]);
+  // Guard against a wrong constant or a changed deployment: the chain must agree.
+  if (symbol !== BNS_TOKEN.symbol || name !== BNS_TOKEN.name) throw new Error(`Unexpected token at ${BNS_TOKEN.address}: ${name} (${symbol})`);
+  const fmt = (v) => Number(formatUnits(v, decimals)).toLocaleString("en-US", { maximumFractionDigits: 2 });
+  log(`$${symbol} — ${name}, the official BankrNS token on Base`);
+  log(`   Contract: ${BNS_TOKEN.address}`);
+  log(`   Supply:   ${fmt(supply)} ${symbol} (${decimals} decimals)`);
+  log(`   Basescan: https://basescan.org/token/${BNS_TOKEN.address}`);
+  log(`   Chart:    https://dexscreener.com/base/${BNS_TOKEN.address}`);
+  log(`   Buy with Bankr (by address, never by ticker): "buy $10 of ${BNS_TOKEN.address} on base"`);
+  if (args._[1]) {
+    const who = await resolveTarget(args._[1], "holder");
+    const bal = await read("balanceOf", [who.address]);
+    log(`   ${args._[1]} (${shortAddr(who.address)}) holds ${fmt(bal)} ${symbol}`);
+  }
+}
+
 // ------------------------------------------------------------------ main
 
 const USAGE = readFileSync(new URL(import.meta.url), "utf8")
@@ -455,6 +477,7 @@ async function main() {
   if (cmd === "lookup") return cmdLookup(args);
   if (cmd === "register") return cmdRegister(args);
   if (cmd === "renew") return cmdRenew(args);
+  if (cmd === "token") return cmdToken(args);
   log(`Usage:\n${USAGE}`);
   process.exitCode = cmd ? 1 : 0;
 }
