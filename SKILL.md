@@ -11,7 +11,7 @@ EVM chain, can be the wallet's primary name, and shows the owner's verified X ha
 
 - Contracts (Base, verified on Basescan): controller `0x1C8b3a9062a8Aae65105519B394d7ec73C108ee9`,
   registrar `0x1159CeB0DA0c1E4b3459abC2778310A1F06424F6`
-- Website + live registrations: https://vercel-deploy-delta-wine.vercel.app/#/live
+- Website + live registrations: https://bankrns.store/#/live
 
 ## Install
 
