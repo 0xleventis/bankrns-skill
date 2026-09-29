@@ -14,6 +14,7 @@
 // Commands:
 //   node bankrns.mjs check    <name> [--years N]
 //   node bankrns.mjs lookup   <name.bankr | 0xaddress | @xhandle>
+//   node bankrns.mjs resolve  <name.bankr>                           # JSON for sending: {name, address, owner, expires}
 //   node bankrns.mjs register <name> [--years N] [--resolve-to 0x…|@handle|name.bankr] [--owner 0x…|@handle]
 //                                    [--no-primary] [--no-twitter]
 //   node bankrns.mjs register <name> --build-only --wallet-address 0x… [--twitter handle] [same options]
@@ -237,6 +238,27 @@ async function cmdLookup(args) {
   }
   const primary = await publicClient.readContract({ address: CONTRACTS.universalResolver, abi: universalAbi, functionName: "reverse", args: [address] });
   log(primary ? `${address} → primary name: ${primary}` : `${address} has no .bankr primary name.`);
+}
+
+/**
+ * Machine-readable name -> address for sending tokens. Always prints one JSON line.
+ * Only returns an address for a live (unexpired) name with an address record; never guesses.
+ */
+async function cmdResolve(args) {
+  const q = String(args._[1] || "").trim().toLowerCase();
+  const label = toLabel(q.split(".").length > 2 ? q.split(".").slice(-2).join(".") : q);
+  const err = labelError(label);
+  if (!q || err) return emit({ ok: false, error: `"${args._[1] ?? ""}" isn't a valid .bankr name${err ? `: ${err}` : ""}.` });
+  const name = q.endsWith(".bankr") ? q : fullName(label);
+  const [address, s] = await Promise.all([
+    publicClient.readContract({ address: CONTRACTS.universalResolver, abi: universalAbi, functionName: "resolve", args: [name] }),
+    nameStatus(label),
+  ]);
+  const expires = s.expires ? new Date(s.expires * 1000).toISOString() : null;
+  if (s.expires === 0) return emit({ ok: false, name, error: `${name} is not registered.` });
+  if (s.expires * 1000 <= Date.now()) return emit({ ok: false, name, expires, error: `${name} has expired, so it doesn't resolve. Don't send to it.` });
+  if (address === zeroAddress) return emit({ ok: false, name, owner: s.owner, expires, error: `${name} has no address set. Ask its owner for an address.` });
+  emit({ ok: true, name, address, owner: s.owner, expires, chainId: 8453 });
 }
 
 /** Resolves CLI options into the full registration parameters. */
@@ -475,6 +497,7 @@ async function main() {
   const cmd = args._[0];
   if (cmd === "check") return cmdCheck(args);
   if (cmd === "lookup") return cmdLookup(args);
+  if (cmd === "resolve") return cmdResolve(args);
   if (cmd === "register") return cmdRegister(args);
   if (cmd === "renew") return cmdRenew(args);
   if (cmd === "token") return cmdToken(args);
@@ -483,7 +506,7 @@ async function main() {
 }
 
 main().catch((e) => {
-  const buildOnly = process.argv.includes("--build-only");
+  const buildOnly = process.argv.includes("--build-only") || process.argv[2] === "resolve";
   if (buildOnly) emit({ error: e.shortMessage || e.message });
   else console.error(`❌ ${e.shortMessage || e.message}`);
   if (process.env.DEBUG) console.error(e);
